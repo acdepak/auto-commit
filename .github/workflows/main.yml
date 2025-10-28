@@ -1,0 +1,34 @@
+name: Scheduled Auto-commit
+
+# Runs daily at 08:00 UTC and can be run manually
+on:
+  schedule:
+    - cron: '0 8 * * *' # This cron job runs daily at 08:00 AM UTC
+  workflow_dispatch:
+
+# Allow this workflow to write repo contents (needed for pushing commits)
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true  # keeps GITHUB_TOKEN for pushing
+          fetch-depth: 0
+
+      - name: Update TIMESTAMP.txt (UTC)
+        run: |
+          echo "Last automated commit: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" > TIMESTAMP.txt
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Automated update to TIMESTAMP.txt"
+          file_pattern: TIMESTAMP.txt
+          # branch: (optional) leave blank to push to checked-out branch
+          author_name: "github-actions[bot]"
+          author_email: "41898282+github-actions[bot]@users.noreply.github.com"
